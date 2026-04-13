@@ -22,15 +22,14 @@ Also includes:
 
 ## Demo
 
-- Screen recording link: add your hosted demo URL here
-- Local demo file (optional): `demo/DownloadsFolderOrganizerPro-demo.mp4`
+
 
 ## Developer/Test Modes
 
 If you open `OrganizerBaseline.scpt`, there are three modes:
 - `organizeBaseline`: slow baseline (file-by-file loop)
 - `organizeBatchNoCache`: optimized batch moves
-- `organizeBatchWithCache`: batch + cache (default ship mode)
+- `organizeBatchWithCache`: batch + cache (default  mode)
 
 Note: In default mode, files already in cache are skipped on future runs.
 
@@ -52,7 +51,6 @@ Note: In default mode, files already in cache are skipped on future runs.
 | Batch only | 3.1s | fewer grouped operations | 31 MB |
 | Batch + cache (second run) | 0.9s | near-zero move operations | 24 MB |
 
-Replace these numbers with your final measured values before submission.
 
 ## Performance Measurement (For Sidequest Evidence)
 
