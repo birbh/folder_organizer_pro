@@ -3,16 +3,41 @@
 > macOS only: this project uses AppleScript and Finder automation, so it is designed to run only on Mac.
 
 Automatically organizes files in your Downloads folder into:
-- Images: `jpg`, `jpeg`, `png`, `gif`
-- Documents: `pdf`, `doc`, `docx`, `txt`
-- Archives: `zip`, `dmg`, `pkg`
-- Videos: `mp4`, `mov`, `avi`
-- Music: `mp3`, `wav`, `aac`
+- Images: `jpg`, `jpeg`, `png`, `gif`, `bmp`, `svg`, `ico`, `webp`, `tiff`, `heic`
+- Documents: `pdf`, `doc`, `docx`, `txt`, `xlsx`, `xls`, `ppt`, `pptx`, `rtf`, `odt`, `pages`, `numbers`, `keynote`
+- Archives: `zip`, `dmg`, `pkg`, `rar`, `7z`, `tar`, `gz`
+- Videos: `mp4`, `mov`, `avi`, `mkv`, `flv`, `wmv`, `webm`, `m4v`
+- Music: `mp3`, `wav`, `aac`, `flac`, `m4a`, `opus`, `alac`, `ogg`
 
 Also includes:
 - Log file: `~/Desktop/OrganizerLog.txt`
 - Cache file: `~/Library/Preferences/OrganizerCache.txt`
 
+## About the App
+
+**DownloadsFolderOrganizerPro.app** is a macOS application that automatically tidies your Downloads folder by sorting files into category-specific subfolders. Instead of having hundreds of mixed files cluttering your Downloads, the app creates organized folders and moves files into them.
+
+### What it does:
+- Scans your Downloads folder for files
+- Creates category folders (Images, Documents, Archives, Videos, Music) if they don't exist
+- Moves files into the appropriate category folder based on file type
+- Logs all actions so you know what was organized
+- Caches processed files to avoid redundant moves on future runs
+
+### When to use it:
+- Your Downloads folder is getting messy and hard to navigate
+- You want a hands-off way to auto-organize files as they download
+- You need to clean up an existing Downloads folder (run once, or keep it open)
+
+### How to use it:
+1. One-time cleanup: Open the app, let it run, and close it when done
+2. Ongoing auto-organization: Open the app and leave it running—it automatically organizes every 5 minutes
+3. Check results: Open `~/Desktop/OrganizerLog.txt` to see what files were moved and where
+
+### Support & Customization:
+If you want to modify file types or category names, edit `OrganizerBaseline.scpt` in Script Editor before running the app.
+
+## important:::
 ## Quick Start
 
 1. Open `DownloadsFolderOrganizerPro.app`.

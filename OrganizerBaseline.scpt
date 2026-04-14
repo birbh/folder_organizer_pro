@@ -8,8 +8,8 @@ property runEverySeconds : 300
 
 on run
 	set resultRecord to my runOrganizerOnce()
-	display dialog "Organizer run complete." & return & ¬¨
-		"Moved: " & (movedCount of resultRecord) & return & ¬¨
+	display dialog "Organizer run complete." & return & ¬
+		"Moved: " & (movedCount of resultRecord) & return & ¬
 		"Runtime: " & (elapsedSeconds of resultRecord) & " seconds" buttons {"OK"} default button "OK"
 	return runEverySeconds
 end run
@@ -62,15 +62,15 @@ end organizeBaseline
 
 on destinationForFile(fileName)
 	ignoring case
-		if fileName ends with ".jpg" or fileName ends with ".jpeg" or fileName ends with ".png" or fileName ends with ".gif" then
+		if fileName ends with ".jpg" or fileName ends with ".jpeg" or fileName ends with ".png" or fileName ends with ".gif" or fileName ends with ".bmp" or fileName ends with ".svg" or fileName ends with ".ico" or fileName ends with ".webp" or fileName ends with ".tiff" or fileName ends with ".heic" then
 			return "Images"
-		else if fileName ends with ".pdf" or fileName ends with ".doc" or fileName ends with ".txt" or fileName ends with ".docx" then
+		else if fileName ends with ".pdf" or fileName ends with ".doc" or fileName ends with ".txt" or fileName ends with ".docx" or fileName ends with ".xlsx" or fileName ends with ".xls" or fileName ends with ".ppt" or fileName ends with ".pptx" or fileName ends with ".rtf" or fileName ends with ".odt" or fileName ends with ".pages" or fileName ends with ".numbers" or fileName ends with ".keynote" then
 			return "Documents"
-		else if fileName ends with ".zip" or fileName ends with ".dmg" or fileName ends with ".pkg" then
+		else if fileName ends with ".zip" or fileName ends with ".dmg" or fileName ends with ".pkg" or fileName ends with ".rar" or fileName ends with ".7z" or fileName ends with ".tar" or fileName ends with ".gz" then
 			return "Archives"
-		else if fileName ends with ".mp4" or fileName ends with ".mov" or fileName ends with ".avi" then
+		else if fileName ends with ".mp4" or fileName ends with ".mov" or fileName ends with ".avi" or fileName ends with ".mkv" or fileName ends with ".flv" or fileName ends with ".wmv" or fileName ends with ".webm" or fileName ends with ".m4v" then
 			return "Videos"
-		else if fileName ends with ".mp3" or fileName ends with ".wav" or fileName ends with ".aac" then
+		else if fileName ends with ".mp3" or fileName ends with ".wav" or fileName ends with ".aac" or fileName ends with ".flac" or fileName ends with ".m4a" or fileName ends with ".opus" or fileName ends with ".alac" or fileName ends with ".ogg" then
 			return "Music"
 		end if
 	end ignoring
@@ -119,11 +119,11 @@ on organizeBatchNoCache(targetFolderAlias)
 		my ensureFolderExists(targetFolder, "Documents")
 		my ensureFolderExists(targetFolder, "Archives")
 		
-		set movedCount to movedCount + (my moveBatch(targetFolder, {"jpg", "jpeg", "png", "gif"}, "Images"))
-		set movedCount to movedCount + (my moveBatch(targetFolder, {"pdf", "doc", "docx", "txt"}, "Documents"))
-		set movedCount to movedCount + (my moveBatch(targetFolder, {"zip", "dmg", "pkg"}, "Archives"))
-		set movedCount to movedCount + (my moveBatch(targetFolder, {"mp4", "mov", "avi"}, "Videos"))
-		set movedCount to movedCount + (my moveBatch(targetFolder, {"mp3", "aac", "wav"}, "Music"))
+		set movedCount to movedCount + (my moveBatch(targetFolder, {"jpg", "jpeg", "png", "gif", "bmp", "svg", "ico", "webp", "tiff", "heic"}, "Images"))
+		set movedCount to movedCount + (my moveBatch(targetFolder, {"pdf", "doc", "docx", "txt", "xlsx", "xls", "ppt", "pptx", "rtf", "odt", "pages", "numbers", "keynote"}, "Documents"))
+		set movedCount to movedCount + (my moveBatch(targetFolder, {"zip", "dmg", "pkg", "rar", "7z", "tar", "gz"}, "Archives"))
+		set movedCount to movedCount + (my moveBatch(targetFolder, {"mp4", "mov", "avi", "mkv", "flv", "wmv", "webm", "m4v"}, "Videos"))
+		set movedCount to movedCount + (my moveBatch(targetFolder, {"mp3", "aac", "wav", "flac", "m4a", "opus", "alac", "ogg"}, "Music"))
 		
 	end tell
 	
@@ -147,23 +147,23 @@ on organizeBatchWithCache(targetFolderAlias)
 		my ensureFolderExists(targetFolder, "Documents")
 		my ensureFolderExists(targetFolder, "Archives")
 		
-		set stepResult to my moveBatchCached(targetFolder, {"jpg", "jpeg", "png", "gif"}, "Images", processedCache)
+		set stepResult to my moveBatchCached(targetFolder, {"jpg", "jpeg", "png", "gif", "bmp", "svg", "ico", "webp", "tiff", "heic"}, "Images", processedCache)
 		set movedCount to movedCount + (countMoved of stepResult)
 		set processedCache to updatedCache of stepResult
 		
-		set stepResult to my moveBatchCached(targetFolder, {"pdf", "doc", "docx", "txt"}, "Documents", processedCache)
+		set stepResult to my moveBatchCached(targetFolder, {"pdf", "doc", "docx", "txt", "xlsx", "xls", "ppt", "pptx", "rtf", "odt", "pages", "numbers", "keynote"}, "Documents", processedCache)
 		set movedCount to movedCount + (countMoved of stepResult)
 		set processedCache to updatedCache of stepResult
 		
-		set stepResult to my moveBatchCached(targetFolder, {"zip", "dmg", "pkg"}, "Archives", processedCache)
+		set stepResult to my moveBatchCached(targetFolder, {"zip", "dmg", "pkg", "rar", "7z", "tar", "gz"}, "Archives", processedCache)
 		set movedCount to movedCount + (countMoved of stepResult)
 		set processedCache to updatedCache of stepResult
 		
-		set stepResult to my moveBatchCached(targetFolder, {"mp4", "mov", "avi"}, "Videos", processedCache)
+		set stepResult to my moveBatchCached(targetFolder, {"mp4", "mov", "avi", "mkv", "flv", "wmv", "webm", "m4v"}, "Videos", processedCache)
 		set movedCount to movedCount + (countMoved of stepResult)
 		set processedCache to updatedCache of stepResult
 		
-		set stepResult to my moveBatchCached(targetFolder, {"mp3", "aac", "wav"}, "Music", processedCache)
+		set stepResult to my moveBatchCached(targetFolder, {"mp3", "aac", "wav", "flac", "m4a", "opus", "alac", "ogg"}, "Music", processedCache)
 		set movedCount to movedCount + (countMoved of stepResult)
 		set processedCache to updatedCache of stepResult
 	end tell
