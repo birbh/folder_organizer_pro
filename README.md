@@ -45,6 +45,39 @@ If you want to modify file types or category names, edit `OrganizerBaseline.scpt
 3. Keep it open if you want auto-runs every 5 minutes (stay-open mode).
 4. Check `~/Desktop/OrganizerLog.txt` to see what was moved.
 
+## If macOS says the app is "damaged" or won't open
+Because this is a shared AppleScript app bundle and may not be notarized, macOS Gatekeeper can block it on other devices.
+
+### 1) Remove quarantine flags (recommended first)
+
+Run this in Terminal (replace the path with your real app path):
+
+```bash
+xattr -cr "/path/to/DownloadsFolderOrganizerPro.app"
+```
+
+eg:
+
+```bash
+xattr -cr "$HOME/Downloads/DownloadsFolderOrganizerPro.app"
+```
+
+Then try opening the app again.
+
+### 2) Use Open Anyway if still blocked
+
+1. Go to `System Settings` -> `Privacy & Security`.
+2. In the Security section, find the blocked app message.
+3. Click `Open Anyway`, then confirm.
+
+### 3) One-time bypass from Finder
+
+1. Right-click `DownloadsFolderOrganizerPro.app`.
+2. Click `Open`.
+3. Click `Open` again in the warning dialog.
+
+If the app still fails to open, re-download or re-copy the `.app` bundle and run `xattr -cr` again.
+
 ## Demo
 
 
@@ -113,6 +146,18 @@ ps -axo pid,comm,rss | grep -i "DownloadsFolderOrganizerPro\|OrganizerBaseline\|
 3. Set File Format to `Application`.
 4. Enable `Stay open after run handler`.
 5. Save as `DownloadsFolderOrganizerPro.app`.
+
+## Optional: Sign before sharing (maintainer)
+
+If you distribute the app to other Macs, signing helps reduce launch warnings.
+
+```bash
+codesign --force --deep --sign - "/path/to/DownloadsFolderOrganizerPro.app"
+```
+
+Notes:
+- `--sign -` uses ad-hoc signing (no paid certificate required).
+- For best trust on external machines, use a Developer ID certificate and notarization.
 
 
 
