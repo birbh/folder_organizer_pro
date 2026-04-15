@@ -76,7 +76,17 @@ Then try opening the app again.
 2. Click `Open`.
 3. Click `Open` again in the warning dialog.
 
-If the app still fails to open, re-download or re-copy the `.app` bundle and run `xattr -cr` again.
+### 4) Final fallback: run the script directly
+
+If the app still fails to open, use Script Editor directly:
+
+1. Open `OrganizerBaseline.scpt` in Script Editor.
+2. Click the `Run` button.
+3. Grant Finder/Desktop/Downloads permissions if prompted.
+
+This runs the organizer logic even if the `.app` wrapper is blocked.
+
+If needed, re-download or re-copy the `.app` bundle and run `xattr -cr` again.
 
 ## Demo
 
