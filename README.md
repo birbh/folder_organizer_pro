@@ -102,7 +102,8 @@ If needed, re-download or re-copy the `.app` bundle and run `xattr -cr` again.
 
 
 
-https://github.com/user-attachments/assets/44459861-337a-4e71-b825-dfa0e6df8576
+
+https://github.com/user-attachments/assets/7eeba8bf-f70d-458d-bd5f-1eb305d0dd08
 
 
 
