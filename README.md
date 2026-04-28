@@ -8,6 +8,7 @@ Automatically organizes files in your Downloads folder into:
 - Archives: `zip`, `dmg`, `pkg`, `rar`, `7z`, `tar`, `gz`
 - Videos: `mp4`, `mov`, `avi`, `mkv`, `flv`, `wmv`, `webm`, `m4v`
 - Music: `mp3`, `wav`, `aac`, `flac`, `m4a`, `opus`, `alac`, `ogg`
+- Other: Any files that don't match the above categories
 
 Also includes:
 - Log file: `~/Desktop/OrganizerLog.txt`
@@ -19,10 +20,19 @@ Also includes:
 
 ### What it does:
 - Scans your Downloads folder for files
-- Creates category folders (Images, Documents, Archives, Videos, Music) if they don't exist
+- Creates category folders (Images, Documents, Archives, Videos, Music, Other) if they don't exist
 - Moves files into the appropriate category folder based on file type
+- Files with unrecognized extensions are moved to the "Other" folder
 - Logs all actions so you know what was organized
 - Caches processed files to avoid redundant moves on future runs
+
+### Other Files Handler
+The "Other" category captures any file with an unrecognized or non-standard file extension that doesn't match the predefined categories. Two specialized handlers manage these files:
+
+- `moveOther()`: Used in batch mode without caching. Scans all files, identifies those with unknown extensions, and moves them to the "Other" folder.
+- `moveOtherCached()`: Used in cache mode. Same behavior as moveOther, but also maintains cache entries for "Other" files to prevent re-processing on subsequent runs. Files already in cache are skipped automatically.
+
+This ensures no files are left behind in Downloads, regardless of their file type or how obscure the extension.
 
 ### When to use it:
 - Your Downloads folder is getting messy and hard to navigate
@@ -101,11 +111,11 @@ https://github.com/user-attachments/assets/44459861-337a-4e71-b825-dfa0e6df8576
 ## Developer/Test Modes
 
 If you open `OrganizerBaseline.scpt`, there are three modes:
-- `organizeBaseline`: slow baseline (file-by-file loop)
-- `organizeBatchNoCache`: optimized batch moves
-- `organizeBatchWithCache`: batch + cache (default  mode)
+- `organizeBaseline`: slow baseline (file-by-file loop), includes Other files via destinationForFile
+- `organizeBatchNoCache`: optimized batch moves, processes Other files via moveOther handler
+- `organizeBatchWithCache`: batch + cache (default mode), processes Other files via moveOtherCached handler
 
-Note: In default mode, files already in cache are skipped on future runs.
+Note: In all modes, the "Other" category captures any files with unrecognized extensions. In cache mode, Other files are tracked and skipped on future runs.
 
 ## Optimization Summary
 
@@ -114,8 +124,8 @@ Note: In default mode, files already in cache are skipped on future runs.
 - After: move grouped file lists per category.
 
 ### Optimization 2: Caching
-- Before: every run re-processes the same files.
-- After: previously processed filenames are skipped using cache.
+- Before: every run re-processes the same files, including unrecognized file types.
+- After: previously processed filenames (including Other files) are skipped using cache on subsequent runs.
 
 ## Results (Example)
 
@@ -149,7 +159,7 @@ ps -axo pid,comm,rss | grep -i "DownloadsFolderOrganizerPro\|OrganizerBaseline\|
 
 `rss` is in KB. Divide by 1024 to get MB.
 
-## Stay-Open Packaging (Flavortown)
+## Stay-Open Packaging 
 
 1. Open `OrganizerBaseline.scpt` in Script Editor.
 2. Click File -> Export.

@@ -7,9 +7,29 @@
 property runEverySeconds : 300
 
 on run
-	set resultRecord to my runOrganizerOnce()
-	display dialog "Organizer run complete." & return & ¬
-		"Moved: " & (movedCount of resultRecord) & return & ¬
+	-- present a simple UI: dropdown to select mode, then a Run button
+	set modes to {"organizeBaseline", "organizeBatchNoCache", "organizeBatchWithCache"}
+	set defaultMode to "organizeBatchWithCache"
+	set userChoice to (choose from list modes ¬¨
+		with prompt ¬¨
+		"Select organizer mode:" default items {defaultMode})
+	if userChoice is false then return runEverySeconds
+	set chosenMode to item 1 of userChoice
+	
+	set resp to display dialog "Run organizer in mode: " & chosenMode buttons {"Run", "Cancel"} default button "Run"
+	if button returned of resp is "Cancel" then return runEverySeconds
+	
+	set targetFolder to (path to downloads folder) as alias
+	if chosenMode is "organizeBaseline" then
+		set resultRecord to my organizeBaseline(targetFolder)
+	else if chosenMode is "organizeBatchNoCache" then
+		set resultRecord to my organizeBatchNoCache(targetFolder)
+	else
+		set resultRecord to my organizeBatchWithCache(targetFolder)
+	end if
+	
+	display dialog "Organizer run complete." & return & ¬¨
+		"Moved: " & (movedCount of resultRecord) & return & ¬¨
 		"Runtime: " & (elapsedSeconds of resultRecord) & " seconds" buttons {"OK"} default button "OK"
 	return runEverySeconds
 end run
@@ -41,6 +61,7 @@ on organizeBaseline(targetFolderAlias)
 		my ensureFolderExists(targetFolder, "Images")
 		my ensureFolderExists(targetFolder, "Documents")
 		my ensureFolderExists(targetFolder, "Archives")
+		my ensureFolderExists(targetFolder, "Other")
 		
 		set allItems to every file of targetFolder
 		repeat with oneFile in allItems
@@ -74,7 +95,7 @@ on destinationForFile(fileName)
 			return "Music"
 		end if
 	end ignoring
-	return ""
+	return "Other"
 end destinationForFile
 on ensureFolderExists(parentFolder, folderName)
 	tell application "Finder"
@@ -92,6 +113,7 @@ on folderRefForName(targetFolder, folderName)
 		if folderName is "Archives" then return folder "Archives" of targetFolder
 		if folderName is "Videos" then return folder "Videos" of targetFolder
 		if folderName is "Music" then return folder "Music" of targetFolder
+		if folderName is "Other" then return folder "Other" of targetFolder
 	end tell
 	error "Unknown destination folder: " & folderName
 end folderRefForName
@@ -118,12 +140,14 @@ on organizeBatchNoCache(targetFolderAlias)
 		my ensureFolderExists(targetFolder, "Images")
 		my ensureFolderExists(targetFolder, "Documents")
 		my ensureFolderExists(targetFolder, "Archives")
+		my ensureFolderExists(targetFolder, "Other")
 		
 		set movedCount to movedCount + (my moveBatch(targetFolder, {"jpg", "jpeg", "png", "gif", "bmp", "svg", "ico", "webp", "tiff", "heic"}, "Images"))
 		set movedCount to movedCount + (my moveBatch(targetFolder, {"pdf", "doc", "docx", "txt", "xlsx", "xls", "ppt", "pptx", "rtf", "odt", "pages", "numbers", "keynote"}, "Documents"))
 		set movedCount to movedCount + (my moveBatch(targetFolder, {"zip", "dmg", "pkg", "rar", "7z", "tar", "gz"}, "Archives"))
 		set movedCount to movedCount + (my moveBatch(targetFolder, {"mp4", "mov", "avi", "mkv", "flv", "wmv", "webm", "m4v"}, "Videos"))
 		set movedCount to movedCount + (my moveBatch(targetFolder, {"mp3", "aac", "wav", "flac", "m4a", "opus", "alac", "ogg"}, "Music"))
+		set movedCount to movedCount + (my moveOther(targetFolder, "Other"))
 		
 	end tell
 	
@@ -146,6 +170,7 @@ on organizeBatchWithCache(targetFolderAlias)
 		my ensureFolderExists(targetFolder, "Images")
 		my ensureFolderExists(targetFolder, "Documents")
 		my ensureFolderExists(targetFolder, "Archives")
+		my ensureFolderExists(targetFolder, "Other")
 		
 		set stepResult to my moveBatchCached(targetFolder, {"jpg", "jpeg", "png", "gif", "bmp", "svg", "ico", "webp", "tiff", "heic"}, "Images", processedCache)
 		set movedCount to movedCount + (countMoved of stepResult)
@@ -164,6 +189,10 @@ on organizeBatchWithCache(targetFolderAlias)
 		set processedCache to updatedCache of stepResult
 		
 		set stepResult to my moveBatchCached(targetFolder, {"mp3", "aac", "wav", "flac", "m4a", "opus", "alac", "ogg"}, "Music", processedCache)
+		set movedCount to movedCount + (countMoved of stepResult)
+		set processedCache to updatedCache of stepResult
+		
+		set stepResult to my moveOtherCached(targetFolder, "Other", processedCache)
 		set movedCount to movedCount + (countMoved of stepResult)
 		set processedCache to updatedCache of stepResult
 	end tell
@@ -248,8 +277,99 @@ on saveCache(cacheList)
 	
 	do shell script "printf %s " & quoted form of cacheText & " > " & quoted form of cachePath
 end saveCache
+on moveOther(targetFolder, destinationFolderName)
+	tell application "Finder"
+		set knownExtensions to {"jpg", "jpeg", "png", "gif", "bmp", "svg", "ico", "webp", "tiff", "heic", "pdf", "doc", "docx", "txt", "xlsx", "xls", "ppt", "pptx", "rtf", "odt", "pages", "numbers", "keynote", "zip", "dmg", "pkg", "rar", "7z", "tar", "gz", "mp4", "mov", "avi", "mkv", "flv", "wmv", "webm", "m4v", "mp3", "aac", "wav", "flac", "m4a", "opus", "alac", "ogg"}
+		set allFiles to every file of targetFolder
+		set filesToMove to {}
+		
+		repeat with oneFile in allFiles
+			set fileName to name of oneFile as text
+			set fileExt to name extension of oneFile as text
+			set isKnown to false
+			
+			repeat with knownExt in knownExtensions
+				if fileExt is (contents of knownExt) then
+					set isKnown to true
+					exit repeat
+				end if
+			end repeat
+			
+			if isKnown is false and fileExt is not "" then
+				set end of filesToMove to oneFile
+			end if
+		end repeat
+		
+		if (count of filesToMove) > 0 then
+			set destinationFolderRef to my folderRefForName(targetFolder, destinationFolderName)
+			move filesToMove to destinationFolderRef with replacing
+			my appendLog("Moved " & (count of filesToMove) & " Other files -> " & destinationFolderName)
+		end if
+		
+		return count of filesToMove
+	end tell
+end moveOther
+on moveOtherCached(targetFolder, destinationFolderName, processedCache)
+	tell application "Finder"
+		set knownExtensions to {"jpg", "jpeg", "png", "gif", "bmp", "svg", "ico", "webp", "tiff", "heic", "pdf", "doc", "docx", "txt", "xlsx", "xls", "ppt", "pptx", "rtf", "odt", "pages", "numbers", "keynote", "zip", "dmg", "pkg", "rar", "7z", "tar", "gz", "mp4", "mov", "avi", "mkv", "flv", "wmv", "webm", "m4v", "mp3", "aac", "wav", "flac", "m4a", "opus", "alac", "ogg"}
+		set allFiles to every file of targetFolder
+		set filesToMove to {}
+		set namesToCache to {}
+		
+		repeat with oneFile in allFiles
+			set fileName to name of oneFile as text
+			set fileExt to name extension of oneFile as text
+			set isKnown to false
+			
+			repeat with knownExt in knownExtensions
+				if fileExt is (contents of knownExt) then
+					set isKnown to true
+					exit repeat
+				end if
+			end repeat
+			
+			if isKnown is false and fileExt is not "" then
+				if my listContains(processedCache, fileName) is false then
+					set end of filesToMove to oneFile
+					set end of namesToCache to fileName
+				end if
+			end if
+		end repeat
+		
+		if (count of filesToMove) > 0 then
+			set destinationFolderRef to my folderRefForName(targetFolder, destinationFolderName)
+			move filesToMove to destinationFolderRef with replacing
+			repeat with cachedName in namesToCache
+				set end of processedCache to (contents of cachedName)
+			end repeat
+			my appendLog("Cached batch moved " & (count of filesToMove) & " Other files -> " & destinationFolderName)
+		end if
+		
+		return {countMoved:(count of filesToMove), updatedCache:processedCache}
+	end tell
+end moveOtherCached
 
 
 
 
 
+- implemented a new gui mode selector with 3 optimization modes
+- added "other" folder for unrecognized file types
+- created moveother() and moveothercached() handlers
+- updated all 3 organizer modes to handle "other" files
+- compiled both scripts (main + app)
+
+this will be my final devlog and there will be no updates on this project on flavortownn....
+thanks to all
+
+
+
+flavortown, goodbye on april 30. this has been a bittersweet moment. thanks for hosting the optimization sidequest and pushing me to build something that works.
+
+downloads folder organizer pro shipped with:
+
+-  batch operations optimization (groups file moves)
+- caching system (skips already-processed files)
+- "other" folder handler (captures all unrecognized files)
+- gui mode selector (baseline, batch, cached)
+- logging and persistence
